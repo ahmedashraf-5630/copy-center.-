@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة تحكم Copy Center</title>
+<style>
+:root{color-scheme:dark;--bg:#070b1a;--card:#0f1730;--card2:#121b38;--tx:#f1f5f9;--mut:#94a3b8;--pri:#6366f1;--pri2:#8b5cf6;--soft:#1b2650;--bd:#1f2a4a;--ok:#4ade80;--warn:#fbbf24;--bad:#f87171}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:"Cairo","Segoe UI",Tahoma,sans-serif;line-height:1.6}
+.hide{display:none!important}
+.wrap{max-width:420px;margin:12vh auto;padding:24px;background:var(--card);border:1px solid var(--bd);border-radius:24px}
+h1,h2,h3{margin:0}
+input,select{width:100%;padding:12px 14px;border:1.5px solid var(--bd);border-radius:12px;background:var(--card2);color:var(--tx);font:inherit;outline:0}
+input:focus,select:focus{border-color:var(--pri)}
+.btn{padding:11px 16px;border:0;border-radius:12px;background:linear-gradient(90deg,var(--pri),var(--pri2));color:#fff;font:inherit;font-weight:700;cursor:pointer;transition:transform .15s}
+.btn:active{transform:scale(.96)}.btn.sec{background:var(--soft)}.btn.red{background:#7f1d1d}.btn.sm{padding:7px 12px;font-size:13px}
+.err{color:var(--bad);font-size:13px;margin-top:8px}
+header{position:sticky;top:0;z-index:5;background:#070b1acc;backdrop-filter:blur(10px);border-bottom:1px solid var(--bd);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.logo{font-weight:800;color:#8da2ff;margin-inline-end:auto}
+.tabs{display:flex;gap:6px}
+.tab{padding:8px 14px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;cursor:pointer}
+.tab.on{background:var(--pri);border-color:var(--pri)}
+main{max-width:980px;margin:auto;padding:16px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px;text-align:center}
+.stat b{display:block;font-size:28px}.stat span{color:var(--mut);font-size:13px}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:14px}
+.bk{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:14px 16px;margin-bottom:10px;animation:in .35s ease both}
+@keyframes in{from{opacity:0;transform:translateY(10px)}}
+.bk.new{border-color:var(--pri);box-shadow:0 0 0 1px var(--pri) inset}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.code{background:var(--soft);padding:2px 10px;border-radius:8px;font-weight:700;color:#8da2ff}
+.badge{padding:2px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.b-new{background:#312e81;color:#c7d2fe}.b-ready{background:#713f12;color:var(--warn)}.b-done{background:#14532d;color:var(--ok)}
+.meta{color:var(--mut);font-size:13px;margin:6px 0}
+.items{margin:8px 0;padding:10px 12px;background:var(--card2);border-radius:12px;font-size:14px}
+.items div{padding:2px 0}
+a{color:#8da2ff;text-decoration:none}
+.acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.grp{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px;margin-bottom:10px}
+.grp h3{margin-bottom:8px;font-size:16px}
+.q{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--bd)}
+.q:last-child{border:0}.q b{color:#8da2ff}
+.srow{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:10px;margin-bottom:8px}
+.cnt{display:flex;align-items:center;gap:6px}
+.cnt button{width:34px;height:34px;border-radius:10px;border:0;background:var(--soft);color:var(--tx);font-size:18px;cursor:pointer}
+.cnt input{width:56px;text-align:center;padding:8px}
+.note{color:var(--mut);font-size:13px;margin:8px 0}
+.add{display:grid;grid-template-columns:1fr 90px auto;gap:8px;margin-top:12px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--pri);color:#fff;padding:12px 20px;border-radius:14px;font-weight:700;z-index:20;box-shadow:0 10px 30px #0008}
+@media(max-width:560px){.srow{grid-template-columns:1fr}.add{grid-template-columns:1fr 80px}.add .btn{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<div id="login" class="wrap">
+ <h1>لوحة تحكم Copy Center</h1><p class="note">دخول صاحب المكتبة فقط</p>
+ <input id="em" type="email" placeholder="الإيميل" autocomplete="username"><div style="height:10px"></div>
+ <input id="pw" type="password" placeholder="الباسورد" autocomplete="current-password">
+ <button class="btn" id="loginBtn" style="width:100%;margin-top:14px">دخول</button><div class="err" id="lerr"></div>
+</div>
+
+<div id="app" class="hide">
+ <header><div class="logo">📚 Copy Center</div>
+  <div class="tabs"><button class="tab on" data-t="b">الحجوزات</button><button class="tab" data-t="q">الكميات المطلوبة</button><button class="tab" data-t="s">المواد والمحاضرات</button></div>
+  <button class="btn sec sm" id="out">خروج</button></header>
+ <main>
+  <div class="err" id="perr"></div>
+  <section id="tab-b">
+   <div class="stats" id="stats"></div>
+   <div class="filters">
+    <select id="fs"><option value="">كل الحالات</option><option value="new">جديد</option><option value="ready">جاهز</option><option value="done">اتسلّم</option></select>
+    <select id="fb"><option value="">كل الفروع</option><option>الفرع الأول</option><option>الفرع الثاني</option><option>الفرع الثالث</option></select>
+    <select id="fd"></select>
+    <input id="fq" placeholder="بحث بالاسم / الموبايل / رقم الحجز">
+   </div>
+   <div id="list"></div>
+  </section>
+
+  <section id="tab-q" class="hide">
+   <div class="filters"><select id="qd"></select></div>
+   <p class="note">الحجوزات الجديدة والجاهزة بس (اللي لسه ما اتسلمتش). دي الكميات اللي لازم تجهزها.</p>
+   <div id="qlist"></div>
+  </section>
+
+  <section id="tab-s" class="hide">
+   <div class="filters"><select id="sy"><option value="1">الفرقة الأولى</option><option value="2">الفرقة الثانية</option><option value="3">الفرقة الثالثة</option><option value="4">الفرقة الرابعة</option></select><select id="sd"></select></div>
+   <p class="note">الرقم جنب كل مادة هو عدد المحاضرات النازلة. لما تنزل محاضرة جديدة دوس +، وهتظهر للطلاب فورًا.</p>
+   <div id="slist"></div>
+   <div class="add"><input id="an" placeholder="اسم مادة جديدة"><input id="ac" type="number" min="0" value="1"><button class="btn" id="addBtn">إضافة</button></div>
+   <div id="seedBox" class="hide" style="margin-top:20px"><p class="note">لسه مفيش مواد في قاعدة البيانات.</p><button class="btn" id="seed">تحميل المواد الأولية (٥ محاضرات لكل مادة)</button></div>
+  </section>
+ </main>
+</div>
+<div id="toast" class="hide"></div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,collection,query,orderBy,onSnapshot,updateDoc,deleteDoc,doc,setDoc,writeBatch} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+/* الصق هنا بيانات Firebase بتاعتك (نفس اللي في index.html) */
+const firebaseConfig={apiKey:"AIzaSyDiJrAmkdo0GZOUpADf8bWJhaUIdkV4GxY",authDomain:"copy-center-1a975.firebaseapp.com",projectId:"copy-center-1a975",storageBucket:"copy-center-1a975.firebasestorage.app",messagingSenderId:"339428010679",appId:"1:339428010679:web:aa4abf78d7bd66cb23fb32"};
+const SEED={"عام":["التواصل","إلكترونيك","الكيمياء","أناتومي","فسيولوجي","مايكرو","هيستو","كورسات","بنك القضايا"],
+"رعاية تنفسية|2":["Airway","Basic Nutrition 1","باثو","بايو ستاتيكس","ميكرو"],
+"رعاية تنفسية|3":["Equipment semester 2","Ethics","Mechanical ventilation","Monitoring","Patient safety"],
+"رعاية تنفسية|4":["Advanced life support","Problem solving","Pulmonary diseases","Pulmonary rehab"],
+"أسنان|2":["أناتومي","بايو","كومبليت","هيومن"],
+"أسنان|3":["Fixed","Maxilo","أورثو","بارشال"],
+"أسنان|4":["Fixed","Implant","Ortho","أخلاقيات","ديجيتال","الميد ٤"],
+"أجهزة طبية|2":["Machines","بايو ميديكال","بايو ميكانيكس","تكنيكال","ميكانيكس"],
+"أجهزة طبية|3":["PSI","انسترومنت","ثيرابيوتيك","ميكرو كونترول"],
+"أجهزة طبية|4":["Calibration","Fault","Imagine","أوبتكس"],
+"بصريات|2":["Adult","إلكترونك","إيرور","ميكرو","بنك إدارة الوقت"],
+"بصريات|3":["Binocular","Lenses","Low vision","انسترومنت"],
+"بصريات|4":["ميكاترونكس","أناتومي","ريسيرش","إحصاء","أوبتكس"],
+"أشعة|2":["أناتومي","تكنيك","د أحمد رضا","راديو بايولوجي","فيزياء","محمد ياسر","نيوكلر"],
+"أشعة|3":["أناتومي","تكنيك","د أحمد رضا","راديوثيرابي","فارما","فيزياء"],
+"أشعة|4":["Bone","Ethics","الترا ساوند","باكس","تكنيك","د أحمد رضا","د محمد ياسر","راديوثيرابي"],
+"مختبرات|2":["باثولوجي","فسيولوجي","ميوكلر بايولوجي","هيماتولوجي"],
+"مختبرات|3":["أجهزة","بايو","كوالتي","مناعة"],
+"مختبرات|4":["حمل وولادة","شرعي وسموم","كوالتي","مناعة"]};
+const DIVS=["أشعة","مختبرات","بصريات","أجهزة طبية","أسنان","رعاية تنفسية"];
+const ST={new:"جديد",ready:"جاهز",done:"اتسلّم"};
+const $=id=>document.getElementById(id);
+const esc=t=>String(t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+$("sd").innerHTML=DIVS.map(d=>`<option>${d}</option>`).join("");
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===b));["b","q","s"].forEach(t=>$("tab-"+t).classList.toggle("hide",t!==b.dataset.t))});
+function toast(t){const e=$("toast");e.textContent=t;e.classList.remove("hide");clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.add("hide"),4000)}
+function beep(){try{const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.setValueAtTime(.2,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.6);o.start();o.stop(a.currentTime+.6)}catch(e){}}
+
+if(firebaseConfig.apiKey.startsWith("PASTE")){$("lerr").textContent="لازم تلصق بيانات Firebase في الملف (firebaseConfig) الأول."}
+else{
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const state={bookings:[],subjects:{}};let unsubB,unsubS,first=true;
+$("loginBtn").onclick=async()=>{$("lerr").textContent="";try{await signInWithEmailAndPassword(auth,$("em").value.trim(),$("pw").value)}catch(e){$("lerr").textContent="الإيميل أو الباسورد غلط"}};
+$("pw").onkeydown=e=>{if(e.key==="Enter")$("loginBtn").click()};
+$("out").onclick=()=>signOut(auth);
+onAuthStateChanged(auth,u=>{
+ $("login").classList.toggle("hide",!!u);$("app").classList.toggle("hide",!u);
+ if(unsubB)unsubB();if(unsubS)unsubS();
+ if(!u)return;first=true;$("perr").textContent="";
+ const perr=()=>{$("perr").textContent="مفيش صلاحية. اتأكد إنك داخل بإيميل المالك وإن القواعد (Rules) متظبطة."};
+ unsubB=onSnapshot(query(collection(db,"bookings"),orderBy("createdAt","desc")),snap=>{
+  if(!first)snap.docChanges().forEach(c=>{if(c.type==="added"&&!c.doc.metadata.hasPendingWrites){beep();toast("🔔 حجز جديد من "+c.doc.data().name)}});
+  first=false;state.bookings=snap.docs.map(d=>({id:d.id,...d.data()}));renderB();renderQ()},perr);
+ unsubS=onSnapshot(collection(db,"subjects"),snap=>{const o={};snap.forEach(d=>{const x=d.data();o[x.key]=x.list||[]});state.subjects=o;renderS()},perr);
+});
+
+/* ===== الحجوزات ===== */
+const todayISO=(()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")})();
+function dateOpts(sel,all){const m=new Map();state.bookings.forEach(b=>m.set(b.dateISO,b.dateLabel));const keep=sel.value;sel.innerHTML=`<option value="">${all}</option>`+[...m].sort((a,b)=>b[0].localeCompare(a[0])).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join("");sel.value=[...m.keys()].includes(keep)?keep:""}
+function renderB(){
+ const B=state.bookings;
+ $("stats").innerHTML=[["جديد",B.filter(b=>b.status==="new").length],["جاهز",B.filter(b=>b.status==="ready").length],["اتسلّم",B.filter(b=>b.status==="done").length],["استلام النهارده",B.filter(b=>b.dateISO===todayISO&&b.status!=="done").length]].map(x=>`<div class="stat"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("");
+ dateOpts($("fd"),"كل المواعيد");
+ const fs=$("fs").value,fb=$("fb").value,fd=$("fd").value,fq=$("fq").value.trim().toLowerCase();
+ const L=B.filter(b=>(!fs||b.status===fs)&&(!fb||b.branch===fb)&&(!fd||b.dateISO===fd)&&(!fq||[b.name,b.phone,b.code].join(" ").toLowerCase().includes(fq)));
+ $("list").innerHTML=L.length?L.map(b=>{
+  const t=b.createdAt?.toDate?b.createdAt.toDate().toLocaleString("ar-EG",{dateStyle:"medium",timeStyle:"short"}):"";
+  const wa="https://wa.me/2"+esc(b.phone);
+  return `<div class="bk ${b.status==="new"?"new":""}"><div class="row"><b>${esc(b.name)}</b><span class="code">#${esc(b.code)}</span><span class="badge b-${esc(b.status)}">${ST[b.status]||""}</span><span class="meta" style="margin:0;margin-inline-start:auto">${esc(t)}</span></div>
+  <div class="meta">${esc(b.yearLabel)} — ${esc(b.div)} · <b>${esc(b.branch)}</b> · الاستلام: ${esc(b.dateLabel)}</div>
+  <div class="items">${(b.items||[]).map(i=>`<div>• ${esc(i.name)}: محاضرة ${(i.lectures||[]).map(esc).join("، ")}</div>`).join("")}</div>
+  <div class="row"><a href="tel:${esc(b.phone)}">📞 ${esc(b.phone)}</a><a href="${wa}" target="_blank" rel="noopener">💬 واتساب</a></div>
+  <div class="acts">${b.status!=="ready"?`<button class="btn sm" data-a="ready" data-id="${b.id}">جاهز للاستلام</button>`:""}${b.status!=="done"?`<button class="btn sm" data-a="done" data-id="${b.id}">اتسلّم ✓</button>`:""}${b.status!=="new"?`<button class="btn sm sec" data-a="new" data-id="${b.id}">رجوع لجديد</button>`:""}<button class="btn sm red" data-a="del" data-id="${b.id}">حذف</button></div></div>`}).join(""):`<p class="note">مفيش حجوزات.</p>`;
+}
+["fs","fb","fd","fq"].forEach(i=>$(i).oninput=renderB);
+$("list").onclick=async e=>{const b=e.target.closest("[data-a]");if(!b)return;const id=b.dataset.id,a=b.dataset.a;
+ try{if(a==="del"){if(confirm("تحذف الحجز ده؟"))await deleteDoc(doc(db,"bookings",id))}else await updateDoc(doc(db,"bookings",id),{status:a})}catch(x){toast("حصلت مشكلة، جرب تاني")}};
+
+/* ===== الكميات ===== */
+function renderQ(){
+ dateOpts($("qd"),"كل المواعيد");const d=$("qd").value;
+ const g=new Map();
+ state.bookings.filter(b=>b.status!=="done"&&(!d||b.dateISO===d)).forEach(b=>(b.items||[]).forEach(i=>(i.lectures||[]).forEach(n=>{
+  const k=b.div+" — "+b.yearLabel;if(!g.has(k))g.set(k,new Map());const m=g.get(k),kk=i.name+" — محاضرة "+n;m.set(kk,(m.get(kk)||0)+1)})));
+ $("qlist").innerHTML=g.size?[...g].map(([k,m])=>`<div class="grp"><h3>${esc(k)}</h3>${[...m].sort((a,b)=>a[0].localeCompare(b[0],"ar")).map(([n,c])=>`<div class="q"><span>${esc(n)}</span><b>${c}</b></div>`).join("")}</div>`).join(""):`<p class="note">مفيش كميات مطلوبة.</p>`;
+}
+$("qd").oninput=renderQ;
+
+/* ===== المواد ===== */
+const key=()=>{const y=+$("sy").value;return y===1?"عام":$("sd").value+"|"+y};
+const saveList=(k,list)=>setDoc(doc(db,"subjects",k.replace("|","_")),{key:k,list});
+function renderS(){
+ $("sd").classList.toggle("hide",$("sy").value==="1");
+ $("seedBox").classList.toggle("hide",Object.keys(state.subjects).length>0);
+ const l=state.subjects[key()]||[];
+ $("slist").innerHTML=l.length?l.map((s,i)=>`<div class="srow" data-i="${i}"><input class="sn" value="${esc(s.n)}"><div class="cnt"><button data-a="dec">−</button><input class="sc" type="number" min="0" value="${s.c}"><button data-a="inc">+</button></div><button class="btn sm red" data-a="del">حذف</button></div>`).join(""):`<p class="note">مفيش مواد هنا لسه.</p>`;
+}
+["sy","sd"].forEach(i=>$(i).oninput=renderS);
+async function mut(fn){const k=key(),l=JSON.parse(JSON.stringify(state.subjects[k]||[]));fn(l);try{await saveList(k,l)}catch(e){toast("حصلت مشكلة في الحفظ")}}
+$("slist").onclick=e=>{const b=e.target.closest("[data-a]");if(!b)return;const i=+b.closest(".srow").dataset.i,a=b.dataset.a;
+ if(a==="del"&&!confirm("تحذف المادة دي؟"))return;
+ mut(l=>{if(a==="inc")l[i].c++;else if(a==="dec")l[i].c=Math.max(0,l[i].c-1);else l.splice(i,1)})};
+$("slist").onchange=e=>{const r=e.target.closest(".srow");if(!r)return;const i=+r.dataset.i;
+ if(e.target.classList.contains("sn")){const v=e.target.value.replace(/\|/g,"-").trim();if(v)mut(l=>{l[i].n=v});else renderS()}
+ else if(e.target.classList.contains("sc"))mut(l=>{l[i].c=Math.max(0,Math.floor(+e.target.value||0))})};
+$("addBtn").onclick=()=>{const n=$("an").value.replace(/\|/g,"-").trim();if(!n)return;mut(l=>l.push({n,c:Math.max(0,Math.floor(+$("ac").value||0))}));$("an").value=""};
+$("seed").onclick=async()=>{try{const b=writeBatch(db);Object.keys(SEED).forEach(k=>b.set(doc(db,"subjects",k.replace("|","_")),{key:k,list:SEED[k].map(n=>({n,c:5}))}));await b.commit();toast("تم تحميل المواد")}catch(e){toast("حصلت مشكلة")}};
+}
+</script>
+</body>
+</html>
