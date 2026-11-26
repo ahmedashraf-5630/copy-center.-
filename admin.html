@@ -50,6 +50,19 @@ a{color:#8da2ff;text-decoration:none}
 .add{display:grid;grid-template-columns:1fr 90px auto;gap:8px;margin-top:12px}
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--pri);color:#fff;padding:12px 20px;border-radius:14px;font-weight:700;z-index:20;box-shadow:0 10px 30px #0008}
 @media(max-width:560px){.srow{grid-template-columns:1fr}.add{grid-template-columns:1fr 80px}.add .btn{grid-column:1/-1}}
+
+.scard{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:12px;margin-bottom:10px}
+.shead{display:flex;gap:8px;margin-bottom:8px}
+.lrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 0;border-top:1px dashed var(--bd)}
+.lrow b{min-width:34px}.lrow .lp{width:90px;padding:8px}
+.up{display:inline-block;cursor:pointer}
+.rcpt{max-width:150px;max-height:150px;border-radius:10px;border:1px solid var(--bd);cursor:zoom-in;margin-top:6px}
+.b-cash{background:#1e3a5f;color:#93c5fd}.b-awaiting{background:#713f12;color:var(--warn)}.b-receipt_sent{background:#4c1d95;color:#ddd6fd}.b-paid{background:#14532d;color:var(--ok)}
+.modal{position:fixed;inset:0;background:#000d;z-index:30;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:20px 12px}
+.mbox{background:var(--card);border-radius:18px;max-width:760px;width:100%;padding:14px}
+.mbox img{width:100%;display:block;border-radius:10px;margin-bottom:10px}
+.set{display:grid;gap:10px;max-width:520px}.set label{font-size:13px;color:var(--mut)}
+.total{font-weight:800;color:#8da2ff}
 </style>
 </head>
 <body>
@@ -59,10 +72,9 @@ a{color:#8da2ff;text-decoration:none}
  <input id="pw" type="password" placeholder="الباسورد" autocomplete="current-password">
  <button class="btn" id="loginBtn" style="width:100%;margin-top:14px">دخول</button><div class="err" id="lerr"></div>
 </div>
-
 <div id="app" class="hide">
  <header><div class="logo">📚 Copy Center</div>
-  <div class="tabs"><button class="tab on" data-t="b">الحجوزات</button><button class="tab" data-t="q">الكميات المطلوبة</button><button class="tab" data-t="s">المواد والمحاضرات</button></div>
+  <div class="tabs"><button class="tab on" data-t="b">الحجوزات</button><button class="tab" data-t="q">الكميات</button><button class="tab" data-t="s">المواد والمحاضرات</button><button class="tab" data-t="g">الإعدادات</button></div>
   <button class="btn sec sm" id="out">خروج</button></header>
  <main>
   <div class="err" id="perr"></div>
@@ -70,35 +82,43 @@ a{color:#8da2ff;text-decoration:none}
    <div class="stats" id="stats"></div>
    <div class="filters">
     <select id="fs"><option value="">كل الحالات</option><option value="new">جديد</option><option value="ready">جاهز</option><option value="done">اتسلّم</option></select>
+    <select id="fp"><option value="">كل المدفوعات</option><option value="receipt_sent">وصل مستني مراجعة</option><option value="awaiting">مستني الوصل</option><option value="cash">كاش عند الاستلام</option><option value="paid">مدفوع</option></select>
     <select id="fb"><option value="">كل الفروع</option><option>الفرع الأول</option><option>الفرع الثاني</option><option>الفرع الثالث</option></select>
     <select id="fd"></select>
     <input id="fq" placeholder="بحث بالاسم / الموبايل / رقم الحجز">
    </div>
    <div id="list"></div>
   </section>
-
   <section id="tab-q" class="hide">
    <div class="filters"><select id="qd"></select></div>
    <p class="note">الحجوزات الجديدة والجاهزة بس (اللي لسه ما اتسلمتش). دي الكميات اللي لازم تجهزها.</p>
    <div id="qlist"></div>
   </section>
-
   <section id="tab-s" class="hide">
-   <div class="filters"><select id="sy"><option value="1">الفرقة الأولى</option><option value="2">الفرقة الثانية</option><option value="3">الفرقة الثالثة</option><option value="4">الفرقة الرابعة</option></select><select id="sd"></select></div>
-   <p class="note">الرقم جنب كل مادة هو عدد المحاضرات النازلة. لما تنزل محاضرة جديدة دوس +، وهتظهر للطلاب فورًا.</p>
+   <div class="filters"><select id="sy"><option value="1">الفرقة الأولى</option><option value="2">الفرقة الثانية</option><option value="3">الفرقة الثالثة</option><option value="4">الفرقة الرابعة</option></select><select id="sd"></select><input id="pg" type="number" min="1" max="5" value="3" title="عدد صفحات المعاينة" placeholder="صفحات المعاينة"></div>
+   <p class="note">لكل محاضرة: اكتب السعر، وارفع ملف المحاضرة (PDF أو صورة) وهيتعمل منه معاينة بأول صفحات عليها علامة مائية. الملف نفسه مش بيتخزن، المعاينة بس. الطلاب مش هيقدروا يحجزوا محاضرة سعرها فاضي.</p>
    <div id="slist"></div>
-   <div class="add"><input id="an" placeholder="اسم مادة جديدة"><input id="ac" type="number" min="0" value="1"><button class="btn" id="addBtn">إضافة</button></div>
+   <div class="add"><input id="an" placeholder="اسم مادة جديدة"><input id="ac" type="number" min="0" value="1" title="عدد المحاضرات"><button class="btn" id="addBtn">إضافة</button></div>
    <div id="seedBox" class="hide" style="margin-top:20px"><p class="note">لسه مفيش مواد في قاعدة البيانات.</p><button class="btn" id="seed">تحميل المواد الأولية (٥ محاضرات لكل مادة)</button></div>
+  </section>
+  <section id="tab-g" class="hide">
+   <div class="set">
+    <label>عنوان / رقم انستا باي (بيظهر للطلاب)</label><input id="gi" placeholder="مثال: name@instapay أو 01xxxxxxxxx">
+    <label>اسم صاحب الحساب</label><input id="gn">
+    <label>ملاحظة تظهر مع الدفع (اختياري)</label><input id="gt">
+    <button class="btn" id="gs">حفظ الإعدادات</button>
+    <p class="note">لو سيبت عنوان انستا باي فاضي، خيار الدفع بانستا باي مش هيظهر للطلاب.</p>
+   </div>
   </section>
  </main>
 </div>
+<div id="mod" class="modal hide"><div class="mbox"><button class="btn sec sm" id="mx" style="margin-bottom:10px">إغلاق ✕</button><div id="mb"></div></div></div>
+<div id="dlg" class="modal hide" style="align-items:center;z-index:40"><div class="mbox" style="max-width:380px;text-align:center;padding:22px"><h3 id="dm" style="margin:0 0 18px;line-height:1.6"></h3><div style="display:flex;gap:10px;justify-content:center"><button class="btn red" id="dy"></button><button class="btn sec" id="dn">إلغاء</button></div></div></div>
 <div id="toast" class="hide"></div>
-
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,collection,query,orderBy,onSnapshot,updateDoc,deleteDoc,doc,setDoc,writeBatch} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-/* الصق هنا بيانات Firebase بتاعتك (نفس اللي في index.html) */
+import {getFirestore,collection,query,orderBy,onSnapshot,updateDoc,deleteDoc,doc,setDoc,getDoc,writeBatch} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyDiJrAmkdo0GZOUpADf8bWJhaUIdkV4GxY",authDomain:"copy-center-1a975.firebaseapp.com",projectId:"copy-center-1a975",storageBucket:"copy-center-1a975.firebasestorage.app",messagingSenderId:"339428010679",appId:"1:339428010679:web:aa4abf78d7bd66cb23fb32"};
 const SEED={"عام":["التواصل","إلكترونيك","الكيمياء","أناتومي","فسيولوجي","مايكرو","هيستو","كورسات","بنك القضايا"],
 "رعاية تنفسية|2":["Airway","Basic Nutrition 1","باثو","بايو ستاتيكس","ميكرو"],
@@ -121,82 +141,120 @@ const SEED={"عام":["التواصل","إلكترونيك","الكيمياء","
 "مختبرات|4":["حمل وولادة","شرعي وسموم","كوالتي","مناعة"]};
 const DIVS=["أشعة","مختبرات","بصريات","أجهزة طبية","أسنان","رعاية تنفسية"];
 const ST={new:"جديد",ready:"جاهز",done:"اتسلّم"};
+const PS={cash:"💵 كاش عند الاستلام",awaiting:"📲 انستا باي — مستني الوصل",receipt_sent:"🧾 وصل مرفوع — راجعه",paid:"✅ مدفوع"};
 const $=id=>document.getElementById(id);
 const esc=t=>String(t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clean=t=>String(t).replace(/[|\/~]/g,"-").trim();
 $("sd").innerHTML=DIVS.map(d=>`<option>${d}</option>`).join("");
-document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===b));["b","q","s"].forEach(t=>$("tab-"+t).classList.toggle("hide",t!==b.dataset.t))});
-function toast(t){const e=$("toast");e.textContent=t;e.classList.remove("hide");clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.add("hide"),4000)}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===b));["b","q","s","g"].forEach(t=>$("tab-"+t).classList.toggle("hide",t!==b.dataset.t))});
+function toast(t){const e=$("toast");e.textContent=t;e.classList.remove("hide");clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.add("hide"),4500)}
 function beep(){try{const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.setValueAtTime(.2,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.6);o.start();o.stop(a.currentTime+.6)}catch(e){}}
+const showMod=h=>{$("mb").innerHTML=h;$("mod").classList.remove("hide")};
+function ask(m,y){return new Promise(r=>{$("dm").textContent=m;$("dy").textContent=y||"أيوه، متأكد";const d=$("dlg");d.classList.remove("hide");const end=v=>{d.classList.add("hide");$("dy").onclick=$("dn").onclick=d.onclick=null;r(v)};$("dy").onclick=()=>end(true);$("dn").onclick=()=>end(false);d.onclick=e=>{if(e.target===d)end(false)}})}
+$("mx").onclick=()=>$("mod").classList.add("hide");
+$("mod").onclick=e=>{if(e.target===$("mod"))$("mod").classList.add("hide")};
 
 if(firebaseConfig.apiKey.startsWith("PASTE")){$("lerr").textContent="لازم تلصق بيانات Firebase في الملف (firebaseConfig) الأول."}
 else{
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
-const state={bookings:[],subjects:{}};let unsubB,unsubS,first=true;
-$("loginBtn").onclick=async()=>{$("lerr").textContent="";try{await signInWithEmailAndPassword(auth,$("em").value.trim(),$("pw").value)}catch(e){$("lerr").textContent="الإيميل أو الباسورد غلط"}};
+const state={bookings:[],subjects:{}};let unsubB,unsubS,unsubG,first=true;
+$("loginBtn").onclick=async()=>{$("lerr").textContent="";try{await signInWithEmailAndPassword(auth,$("em").value.trim(),$("pw").value)}catch(e){const c=e.code||"";$("lerr").textContent=["auth/invalid-credential","auth/user-not-found","auth/wrong-password","auth/invalid-email"].includes(c)?"الإيميل أو الباسورد غلط، أو المستخدم مش مضاف في Authentication":c==="auth/operation-not-allowed"?"Email/Password مش متفعل في Authentication":c==="auth/too-many-requests"?"محاولات كتير، استنى شوية وجرب تاني":["auth/operation-not-supported-in-this-environment","auth/network-request-failed","auth/unauthorized-domain"].includes(c)?"الصفحة لازم تتفتح من رابط (Live Server أو Netlify) مش من الملف مباشرة":"خطأ: "+c}};
 $("pw").onkeydown=e=>{if(e.key==="Enter")$("loginBtn").click()};
 $("out").onclick=()=>signOut(auth);
 onAuthStateChanged(auth,u=>{
  $("login").classList.toggle("hide",!!u);$("app").classList.toggle("hide",!u);
- if(unsubB)unsubB();if(unsubS)unsubS();
+ [unsubB,unsubS,unsubG].forEach(f=>f&&f());
  if(!u)return;first=true;$("perr").textContent="";
- const perr=()=>{$("perr").textContent="مفيش صلاحية. اتأكد إنك داخل بإيميل المالك وإن القواعد (Rules) متظبطة."};
+ const perr=()=>{$("perr").textContent="مفيش صلاحية. اتأكد إنك داخل بإيميل المالك وإن القواعد (Rules) متظبطة ومنشورة."};
  unsubB=onSnapshot(query(collection(db,"bookings"),orderBy("createdAt","desc")),snap=>{
-  if(!first)snap.docChanges().forEach(c=>{if(c.type==="added"&&!c.doc.metadata.hasPendingWrites){beep();toast("🔔 حجز جديد من "+c.doc.data().name)}});
+  if(!first)snap.docChanges().forEach(c=>{if(c.type==="added"&&!c.doc.metadata.hasPendingWrites){beep();toast("🔔 حجز جديد من "+c.doc.data().name)}else if(c.type==="modified"&&c.doc.data().payStatus==="receipt_sent"&&!c.doc.metadata.hasPendingWrites){beep();toast("🧾 وصل جديد من "+c.doc.data().name)}});
   first=false;state.bookings=snap.docs.map(d=>({id:d.id,...d.data()}));renderB();renderQ()},perr);
  unsubS=onSnapshot(collection(db,"subjects"),snap=>{const o={};snap.forEach(d=>{const x=d.data();o[x.key]=x.list||[]});state.subjects=o;renderS()},perr);
+ unsubG=onSnapshot(doc(db,"settings","main"),d=>{const x=d.data()||{};if(document.activeElement.closest&&document.activeElement.closest(".set"))return;$("gi").value=x.instapay||"";$("gn").value=x.iname||"";$("gt").value=x.inote||""},()=>{});
 });
+$("gs").onclick=async()=>{try{await setDoc(doc(db,"settings","main"),{instapay:$("gi").value.trim(),iname:$("gn").value.trim(),inote:$("gt").value.trim()});toast("تم حفظ الإعدادات ✓")}catch(e){toast("حصلت مشكلة في الحفظ")}};
 
 /* ===== الحجوزات ===== */
 const todayISO=(()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")})();
+const itemsOf=b=>(b.items||[]).map(i=>({name:i.name,lec:i.lec||(i.lectures||[]).map(n=>({n,q:1,p:0}))}));
 function dateOpts(sel,all){const m=new Map();state.bookings.forEach(b=>m.set(b.dateISO,b.dateLabel));const keep=sel.value;sel.innerHTML=`<option value="">${all}</option>`+[...m].sort((a,b)=>b[0].localeCompare(a[0])).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join("");sel.value=[...m.keys()].includes(keep)?keep:""}
 function renderB(){
  const B=state.bookings;
- $("stats").innerHTML=[["جديد",B.filter(b=>b.status==="new").length],["جاهز",B.filter(b=>b.status==="ready").length],["اتسلّم",B.filter(b=>b.status==="done").length],["استلام النهارده",B.filter(b=>b.dateISO===todayISO&&b.status!=="done").length]].map(x=>`<div class="stat"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("");
+ $("stats").innerHTML=[["جديد",B.filter(b=>b.status==="new").length],["جاهز",B.filter(b=>b.status==="ready").length],["اتسلّم",B.filter(b=>b.status==="done").length],["استلام النهارده",B.filter(b=>b.dateISO===todayISO&&b.status!=="done").length],["وصل يتراجع",B.filter(b=>b.payStatus==="receipt_sent").length]].map(x=>`<div class="stat"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("");
  dateOpts($("fd"),"كل المواعيد");
- const fs=$("fs").value,fb=$("fb").value,fd=$("fd").value,fq=$("fq").value.trim().toLowerCase();
- const L=B.filter(b=>(!fs||b.status===fs)&&(!fb||b.branch===fb)&&(!fd||b.dateISO===fd)&&(!fq||[b.name,b.phone,b.code].join(" ").toLowerCase().includes(fq)));
+ const fs=$("fs").value,fp=$("fp").value,fb=$("fb").value,fd=$("fd").value,fq=$("fq").value.trim().toLowerCase();
+ const L=B.filter(b=>(!fs||b.status===fs)&&(!fp||b.payStatus===fp)&&(!fb||b.branch===fb)&&(!fd||b.dateISO===fd)&&(!fq||[b.name,b.phone,b.code].join(" ").toLowerCase().includes(fq)));
  $("list").innerHTML=L.length?L.map(b=>{
   const t=b.createdAt?.toDate?b.createdAt.toDate().toLocaleString("ar-EG",{dateStyle:"medium",timeStyle:"short"}):"";
-  const wa="https://wa.me/2"+esc(b.phone);
-  return `<div class="bk ${b.status==="new"?"new":""}"><div class="row"><b>${esc(b.name)}</b><span class="code">#${esc(b.code)}</span><span class="badge b-${esc(b.status)}">${ST[b.status]||""}</span><span class="meta" style="margin:0;margin-inline-start:auto">${esc(t)}</span></div>
+  const wa="https://wa.me/2"+esc(b.phone),ps=b.payStatus||"cash";
+  return `<div class="bk ${b.status==="new"?"new":""}"><div class="row"><b>${esc(b.name)}</b><span class="code">#${esc(b.code)}</span><span class="badge b-${esc(b.status)}">${ST[b.status]||""}</span><span class="badge b-${esc(ps)}">${PS[ps]||""}</span><span class="meta" style="margin:0;margin-inline-start:auto">${esc(t)}</span></div>
   <div class="meta">${esc(b.yearLabel)} — ${esc(b.div)} · <b>${esc(b.branch)}</b> · الاستلام: ${esc(b.dateLabel)}</div>
-  <div class="items">${(b.items||[]).map(i=>`<div>• ${esc(i.name)}: محاضرة ${(i.lectures||[]).map(esc).join("، ")}</div>`).join("")}</div>
-  <div class="row"><a href="tel:${esc(b.phone)}">📞 ${esc(b.phone)}</a><a href="${wa}" target="_blank" rel="noopener">💬 واتساب</a></div>
-  <div class="acts">${b.status!=="ready"?`<button class="btn sm" data-a="ready" data-id="${b.id}">جاهز للاستلام</button>`:""}${b.status!=="done"?`<button class="btn sm" data-a="done" data-id="${b.id}">اتسلّم ✓</button>`:""}${b.status!=="new"?`<button class="btn sm sec" data-a="new" data-id="${b.id}">رجوع لجديد</button>`:""}<button class="btn sm red" data-a="del" data-id="${b.id}">حذف</button></div></div>`}).join(""):`<p class="note">مفيش حجوزات.</p>`;
+  <div class="items">${itemsOf(b).map(i=>`<div>• ${esc(i.name)}: ${i.lec.map(x=>`م${esc(x.n)}${x.q>1?" ×"+esc(x.q):""}`).join("، ")}</div>`).join("")}<div class="total" style="margin-top:6px">الإجمالي: ${esc(b.total??"—")} ج</div></div>
+  ${b.receipt&&["receipt_sent","paid"].includes(ps)?`<img class="rcpt" src="${b.receipt}" data-a="rcpt" data-id="${b.id}" alt="وصل">`:""}
+  <div class="row" style="margin-top:6px"><a href="tel:${esc(b.phone)}">📞 ${esc(b.phone)}</a><a href="${wa}" target="_blank" rel="noopener">💬 واتساب</a></div>
+  <div class="acts">${ps==="receipt_sent"?`<button class="btn sm" data-a="paid" data-id="${b.id}">تأكيد الدفع ✓</button><button class="btn sm sec" data-a="rej" data-id="${b.id}">رفض الوصل</button>`:""}${ps==="cash"?`<button class="btn sm" data-a="paid" data-id="${b.id}">تم الدفع كاش ✓</button>`:""}${b.status!=="ready"?`<button class="btn sm sec" data-a="ready" data-id="${b.id}">جاهز للاستلام</button>`:""}${b.status!=="done"?`<button class="btn sm sec" data-a="done" data-id="${b.id}">اتسلّم ✓</button>`:""}${b.status!=="new"?`<button class="btn sm sec" data-a="new" data-id="${b.id}">رجوع لجديد</button>`:""}<button class="btn sm red" data-a="del" data-id="${b.id}">حذف</button></div></div>`}).join(""):`<p class="note">مفيش حجوزات.</p>`;
 }
-["fs","fb","fd","fq"].forEach(i=>$(i).oninput=renderB);
-$("list").onclick=async e=>{const b=e.target.closest("[data-a]");if(!b)return;const id=b.dataset.id,a=b.dataset.a;
- try{if(a==="del"){if(confirm("تحذف الحجز ده؟"))await deleteDoc(doc(db,"bookings",id))}else await updateDoc(doc(db,"bookings",id),{status:a})}catch(x){toast("حصلت مشكلة، جرب تاني")}};
+["fs","fp","fb","fd","fq"].forEach(i=>$(i).oninput=renderB);
+$("list").onclick=async e=>{const b=e.target.closest("[data-a]");if(!b)return;const id=b.dataset.id,a=b.dataset.a,r=doc(db,"bookings",id);
+ try{if(a==="rcpt"){const bk=state.bookings.find(x=>x.id===id);showMod(`<img src="${bk.receipt}" alt="وصل">`)}
+ else if(a==="del"){if(await ask("تحذف الحجز ده؟","احذف الحجز"))await deleteDoc(r)}
+ else if(a==="paid")await updateDoc(r,{payStatus:"paid"});
+ else if(a==="rej"){if(await ask("ترفض الوصل؟ العميل هيقدر يرفع وصل جديد.","ارفض الوصل"))await updateDoc(r,{payStatus:"awaiting"})}
+ else await updateDoc(r,{status:a})}catch(x){toast("حصلت مشكلة، جرب تاني")}};
 
 /* ===== الكميات ===== */
 function renderQ(){
  dateOpts($("qd"),"كل المواعيد");const d=$("qd").value;
  const g=new Map();
- state.bookings.filter(b=>b.status!=="done"&&(!d||b.dateISO===d)).forEach(b=>(b.items||[]).forEach(i=>(i.lectures||[]).forEach(n=>{
-  const k=b.div+" — "+b.yearLabel;if(!g.has(k))g.set(k,new Map());const m=g.get(k),kk=i.name+" — محاضرة "+n;m.set(kk,(m.get(kk)||0)+1)})));
- $("qlist").innerHTML=g.size?[...g].map(([k,m])=>`<div class="grp"><h3>${esc(k)}</h3>${[...m].sort((a,b)=>a[0].localeCompare(b[0],"ar")).map(([n,c])=>`<div class="q"><span>${esc(n)}</span><b>${c}</b></div>`).join("")}</div>`).join(""):`<p class="note">مفيش كميات مطلوبة.</p>`;
+ state.bookings.filter(b=>b.status!=="done"&&(!d||b.dateISO===d)).forEach(b=>itemsOf(b).forEach(i=>i.lec.forEach(x=>{
+  const k=b.div+" — "+b.yearLabel;if(!g.has(k))g.set(k,new Map());const m=g.get(k),kk=i.name+" — محاضرة "+x.n;m.set(kk,(m.get(kk)||0)+(+x.q||1))})));
+ $("qlist").innerHTML=g.size?[...g].map(([k,m])=>`<div class="grp"><h3>${esc(k)}</h3>${[...m].sort((a,b)=>a[0].localeCompare(b[0],"ar")).map(([n,c])=>`<div class="q"><span>${esc(n)}</span><b>${c} نسخة</b></div>`).join("")}</div>`).join(""):`<p class="note">مفيش كميات مطلوبة.</p>`;
 }
 $("qd").oninput=renderQ;
 
 /* ===== المواد ===== */
 const key=()=>{const y=+$("sy").value;return y===1?"عام":$("sd").value+"|"+y};
+const pid=(k,name,n)=>k.replace("|","_")+"~"+name+"~"+n;
+const norm=s=>({n:s.n,lec:(s.lec||Array.from({length:s.c||0},()=>({p:0,pv:false}))).map(x=>({p:+x.p||0,pv:!!x.pv}))});
 const saveList=(k,list)=>setDoc(doc(db,"subjects",k.replace("|","_")),{key:k,list});
 function renderS(){
  $("sd").classList.toggle("hide",$("sy").value==="1");
  $("seedBox").classList.toggle("hide",Object.keys(state.subjects).length>0);
- const l=state.subjects[key()]||[];
- $("slist").innerHTML=l.length?l.map((s,i)=>`<div class="srow" data-i="${i}"><input class="sn" value="${esc(s.n)}"><div class="cnt"><button data-a="dec">−</button><input class="sc" type="number" min="0" value="${s.c}"><button data-a="inc">+</button></div><button class="btn sm red" data-a="del">حذف</button></div>`).join(""):`<p class="note">مفيش مواد هنا لسه.</p>`;
+ const l=(state.subjects[key()]||[]).map(norm);
+ $("slist").innerHTML=l.length?l.map((s,i)=>`<div class="scard" data-i="${i}"><div class="shead"><input class="sn" value="${esc(s.n)}"><button class="btn sm red" data-a="del">حذف المادة</button></div>${s.lec.map((L,k)=>`<div class="lrow" data-n="${k+1}"><b>م${k+1}</b><input class="lp" type="number" min="0" placeholder="السعر" value="${L.p||""}"><span>ج</span><label class="btn sm sec up">${L.pv?"🔄 تغيير المحاضرة":"📎 رفع المحاضرة"}<input type="file" class="lf" accept=".pdf,image/*" hidden></label>${L.pv?`<button class="btn sm sec" data-a="seepv">👁 معاينة</button><button class="btn sm red" data-a="rmpv">✕</button>`:`<span class="note" style="margin:0">من غير معاينة</span>`}</div>`).join("")}<div class="row" style="margin-top:8px"><button class="btn sm" data-a="addlec">+ محاضرة جديدة</button>${s.lec.length?`<button class="btn sm sec" data-a="rmlec">− آخر محاضرة</button>`:""}</div></div>`).join(""):`<p class="note">مفيش مواد هنا لسه.</p>`;
 }
 ["sy","sd"].forEach(i=>$(i).oninput=renderS);
-async function mut(fn){const k=key(),l=JSON.parse(JSON.stringify(state.subjects[k]||[]));fn(l);try{await saveList(k,l)}catch(e){toast("حصلت مشكلة في الحفظ")}}
-$("slist").onclick=e=>{const b=e.target.closest("[data-a]");if(!b)return;const i=+b.closest(".srow").dataset.i,a=b.dataset.a;
- if(a==="del"&&!confirm("تحذف المادة دي؟"))return;
- mut(l=>{if(a==="inc")l[i].c++;else if(a==="dec")l[i].c=Math.max(0,l[i].c-1);else l.splice(i,1)})};
-$("slist").onchange=e=>{const r=e.target.closest(".srow");if(!r)return;const i=+r.dataset.i;
- if(e.target.classList.contains("sn")){const v=e.target.value.replace(/\|/g,"-").trim();if(v)mut(l=>{l[i].n=v});else renderS()}
- else if(e.target.classList.contains("sc"))mut(l=>{l[i].c=Math.max(0,Math.floor(+e.target.value||0))})};
-$("addBtn").onclick=()=>{const n=$("an").value.replace(/\|/g,"-").trim();if(!n)return;mut(l=>l.push({n,c:Math.max(0,Math.floor(+$("ac").value||0))}));$("an").value=""};
-$("seed").onclick=async()=>{try{const b=writeBatch(db);Object.keys(SEED).forEach(k=>b.set(doc(db,"subjects",k.replace("|","_")),{key:k,list:SEED[k].map(n=>({n,c:5}))}));await b.commit();toast("تم تحميل المواد")}catch(e){toast("حصلت مشكلة")}};
+async function mut(fn){const k=key(),l=JSON.parse(JSON.stringify((state.subjects[k]||[]).map(norm)));fn(l);try{await saveList(k,l)}catch(e){toast("حصلت مشكلة في الحفظ")}}
+const delPv=(k,name,n)=>deleteDoc(doc(db,"previews",pid(k,name,n))).catch(()=>{});
+$("slist").onclick=async e=>{const b=e.target.closest("[data-a]");if(!b)return;const card=b.closest(".scard"),i=+card.dataset.i,a=b.dataset.a,k=key(),cur=(state.subjects[k]||[]).map(norm)[i],row=b.closest(".lrow"),n=row?+row.dataset.n:0;
+ if(a==="del"){if(!await ask("تحذف المادة دي بكل محاضراتها؟","احذف المادة"))return;cur.lec.forEach((L,j)=>L.pv&&delPv(k,cur.n,j+1));mut(l=>l.splice(i,1))}
+ else if(a==="addlec")mut(l=>{const last=l[i].lec[l[i].lec.length-1];l[i].lec.push({p:last?last.p:0,pv:false})});
+ else if(a==="rmlec"){if(!await ask("تمسح آخر محاضرة؟","امسح المحاضرة"))return;const L=cur.lec[cur.lec.length-1];if(L&&L.pv)delPv(k,cur.n,cur.lec.length);mut(l=>{l[i].lec.pop()})}
+ else if(a==="rmpv"){await delPv(k,cur.n,n);mut(l=>{l[i].lec[n-1].pv=false})}
+ else if(a==="seepv"){try{const d=await getDoc(doc(db,"previews",pid(k,cur.n,n)));showMod(d.exists()?d.data().pages.map(u=>`<img src="${u}" alt="معاينة">`).join(""):"<p class='note'>مفيش معاينة.</p>")}catch(x){toast("حصلت مشكلة")}}};
+$("slist").onchange=async e=>{const card=e.target.closest(".scard");if(!card)return;const i=+card.dataset.i,k=key(),cur=(state.subjects[k]||[]).map(norm)[i],row=e.target.closest(".lrow"),n=row?+row.dataset.n:0;
+ if(e.target.classList.contains("sn")){const v=clean(e.target.value);if(!v||v===cur.n){renderS();return}
+  try{for(let j=0;j<cur.lec.length;j++)if(cur.lec[j].pv){const d=await getDoc(doc(db,"previews",pid(k,cur.n,j+1)));if(d.exists())await setDoc(doc(db,"previews",pid(k,v,j+1)),d.data());await delPv(k,cur.n,j+1)}}catch(x){toast("حصلت مشكلة في نقل المعاينات")}
+  mut(l=>{l[i].n=v})}
+ else if(e.target.classList.contains("lp"))mut(l=>{l[i].lec[n-1].p=Math.max(0,+e.target.value||0)});
+ else if(e.target.classList.contains("lf")){const f=e.target.files[0];if(!f)return;toast("⏳ جاري تجهيز المعاينة...");
+  try{const pages=await makePreview(f,Math.max(1,Math.min(5,+$("pg").value||3)));await setDoc(doc(db,"previews",pid(k,cur.n,n)),{pages});mut(l=>{l[i].lec[n-1].pv=true});toast("تمت إضافة المعاينة ✓")}catch(x){toast("مقدرتش أجهز الملف. جرب PDF أو صورة تانية.")}}};
+$("addBtn").onclick=()=>{const n=clean($("an").value);if(!n)return;const c=Math.max(0,Math.floor(+$("ac").value||0));mut(l=>l.push({n,lec:Array.from({length:c},()=>({p:0,pv:false}))}));$("an").value=""};
+$("seed").onclick=async()=>{try{const b=writeBatch(db);Object.keys(SEED).forEach(k=>b.set(doc(db,"subjects",k.replace("|","_")),{key:k,list:SEED[k].map(n=>({n,lec:Array.from({length:5},()=>({p:0,pv:false}))}))}));await b.commit();toast("تم تحميل المواد")}catch(e){toast("حصلت مشكلة")}};
+
+/* ===== تجهيز المعاينة ===== */
+let pdfLib;
+async function loadPdf(){if(pdfLib)return pdfLib;await new Promise((ok,no)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";s.onload=ok;s.onerror=no;document.head.appendChild(s)});const w=await (await fetch("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js")).text();window.pdfjsLib.GlobalWorkerOptions.workerSrc=URL.createObjectURL(new Blob([w],{type:"text/javascript"}));pdfLib=window.pdfjsLib;return pdfLib}
+function loadImg(f){return new Promise((ok,no)=>{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{const k=Math.min(1,1600/im.width),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c)};im.onerror=no;im.src=u})}
+function wm(c,w,q){const k=Math.min(1,w/c.width),o=document.createElement("canvas");o.width=Math.round(c.width*k);o.height=Math.round(c.height*k);const x=o.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,o.width,o.height);x.drawImage(c,0,0,o.width,o.height);x.save();x.translate(o.width/2,o.height/2);x.rotate(-.5);x.font="bold "+Math.round(o.width/11)+"px sans-serif";x.fillStyle="rgba(90,90,90,.22)";x.textAlign="center";for(let y=-o.height;y<o.height;y+=o.width/3)x.fillText("Copy Center - معاينة",0,y);x.restore();return o.toDataURL("image/jpeg",q)}
+async function makePreview(f,maxPages){
+ const cs=[];
+ if(f.type==="application/pdf"||/\.pdf$/i.test(f.name)){const lib=await loadPdf(),pdf=await lib.getDocument({data:await f.arrayBuffer()}).promise,n=Math.min(pdf.numPages,maxPages);
+  for(let i=1;i<=n;i++){const p=await pdf.getPage(i),v0=p.getViewport({scale:1}),v=p.getViewport({scale:1000/v0.width}),c=document.createElement("canvas");c.width=v.width;c.height=v.height;await p.render({canvasContext:c.getContext("2d"),viewport:v}).promise;cs.push(c)}}
+ else cs.push(await loadImg(f));
+ for(const [w,q] of [[800,.6],[700,.5],[600,.4],[500,.35]]){const pages=cs.map(c=>wm(c,w,q));if(pages.join("").length<880000)return pages}
+ throw new Error("big");
+}
 }
 </script>
 </body>
