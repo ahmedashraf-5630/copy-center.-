@@ -95,7 +95,7 @@ a{color:#8da2ff;text-decoration:none}
    <div id="qlist"></div>
   </section>
   <section id="tab-s" class="hide">
-   <div class="filters"><select id="sy"><option value="1">الفرقة الأولى</option><option value="2">الفرقة الثانية</option><option value="3">الفرقة الثالثة</option><option value="4">الفرقة الرابعة</option></select><select id="sd"></select><input id="pg" type="number" min="1" max="5" value="3" title="عدد صفحات المعاينة" placeholder="صفحات المعاينة"></div>
+   <div class="filters"><select id="sy"><option value="1">الفرقة الأولى</option><option value="2">الفرقة الثانية</option><option value="3">الفرقة الثالثة</option><option value="4">الفرقة الرابعة</option></select><select id="sd"></select></div>
    <p class="note">لكل محاضرة: اكتب السعر، وارفع ملف المحاضرة (PDF أو صورة) وهيتعمل منه معاينة بأول صفحات عليها علامة مائية. الملف نفسه مش بيتخزن، المعاينة بس. الطلاب مش هيقدروا يحجزوا محاضرة سعرها فاضي.</p>
    <div id="slist"></div>
    <div class="add"><input id="an" placeholder="اسم مادة جديدة"><input id="ac" type="number" min="0" value="1" title="عدد المحاضرات"><button class="btn" id="addBtn">إضافة</button></div>
@@ -238,7 +238,7 @@ $("slist").onchange=async e=>{const card=e.target.closest(".scard");if(!card)ret
   mut(l=>{l[i].n=v})}
  else if(e.target.classList.contains("lp"))mut(l=>{l[i].lec[n-1].p=Math.max(0,+e.target.value||0)});
  else if(e.target.classList.contains("lf")){const f=e.target.files[0];if(!f)return;toast("⏳ جاري تجهيز المعاينة...");
-  try{const pages=await makePreview(f,Math.max(1,Math.min(5,+$("pg").value||3)));await setDoc(doc(db,"previews",pid(k,cur.n,n)),{pages});mut(l=>{l[i].lec[n-1].pv=true});toast("تمت إضافة المعاينة ✓")}catch(x){toast("مقدرتش أجهز الملف. جرب PDF أو صورة تانية.")}}};
+  try{const pages=await makePreview(f,5);await setDoc(doc(db,"previews",pid(k,cur.n,n)),{pages});mut(l=>{l[i].lec[n-1].pv=true});toast("تمت إضافة المعاينة ✓")}catch(x){toast("مقدرتش أجهز الملف. جرب PDF أو صورة تانية.")}}};
 $("addBtn").onclick=()=>{const n=clean($("an").value);if(!n)return;const c=Math.max(0,Math.floor(+$("ac").value||0));mut(l=>l.push({n,lec:Array.from({length:c},()=>({p:0,pv:false}))}));$("an").value=""};
 $("seed").onclick=async()=>{try{const b=writeBatch(db);Object.keys(SEED).forEach(k=>b.set(doc(db,"subjects",k.replace("|","_")),{key:k,list:SEED[k].map(n=>({n,lec:Array.from({length:5},()=>({p:0,pv:false}))}))}));await b.commit();toast("تم تحميل المواد")}catch(e){toast("حصلت مشكلة")}};
 
