@@ -63,6 +63,7 @@ a{color:#8da2ff;text-decoration:none}
 .mbox img{width:100%;display:block;border-radius:10px;margin-bottom:10px}
 .set{display:grid;gap:10px;max-width:520px}.set label{font-size:13px;color:var(--mut)}
 .total{font-weight:800;color:#8da2ff}
+.it{width:100%;border-collapse:collapse;font-size:14px}.it th{color:var(--mut);font-weight:600;text-align:right;padding:6px 8px;border-bottom:1px solid var(--bd);white-space:nowrap}.it td{padding:7px 8px;border-bottom:1px dashed var(--bd)}.it th:nth-child(n+2),.it td:nth-child(n+2){text-align:center;width:110px}.it tr:last-child td{border:0}
 </style>
 </head>
 <body>
@@ -189,7 +190,7 @@ function renderB(){
   const wa="https://wa.me/2"+esc(b.phone),ps=b.payStatus||"cash";
   return `<div class="bk ${b.status==="new"?"new":""}"><div class="row"><b>${esc(b.name)}</b><span class="code">#${esc(b.code)}</span><span class="badge b-${esc(b.status)}">${ST[b.status]||""}</span><span class="badge b-${esc(ps)}">${PS[ps]||""}</span><span class="meta" style="margin:0;margin-inline-start:auto">${esc(t)}</span></div>
   <div class="meta">${esc(b.yearLabel)} — ${esc(b.div)} · <b>${esc(b.branch)}</b> · الاستلام: ${esc(b.dateLabel)}</div>
-  <div class="items">${itemsOf(b).map(i=>`<div>• ${esc(i.name)}: ${i.lec.map(x=>`م${esc(x.n)}${x.q>1?" ×"+esc(x.q):""}`).join("، ")}</div>`).join("")}<div class="total" style="margin-top:6px">الإجمالي: ${esc(b.total??"—")} ج</div></div>
+  <div class="items" style="overflow-x:auto"><table class="it"><thead><tr><th>المادة</th><th>رقم المحاضرة</th><th>عدد النسخ</th></tr></thead><tbody>${itemsOf(b).flatMap(i=>i.lec.map(x=>`<tr><td>${esc(i.name)}</td><td>${esc(x.n)}</td><td>${esc(x.q)}</td></tr>`)).join("")}</tbody></table><div class="total" style="margin-top:8px">الإجمالي: ${esc(b.total??"—")} ج</div></div>
   ${b.receipt&&["receipt_sent","paid"].includes(ps)?`<img class="rcpt" src="${b.receipt}" data-a="rcpt" data-id="${b.id}" alt="وصل">`:""}
   <div class="row" style="margin-top:6px"><a href="tel:${esc(b.phone)}">📞 ${esc(b.phone)}</a><a href="${wa}" target="_blank" rel="noopener">💬 واتساب</a></div>
   <div class="acts">${ps==="receipt_sent"?`<button class="btn sm" data-a="paid" data-id="${b.id}">تأكيد الدفع ✓</button><button class="btn sm sec" data-a="rej" data-id="${b.id}">رفض الوصل</button>`:""}${ps==="cash"?`<button class="btn sm" data-a="paid" data-id="${b.id}">تم الدفع كاش ✓</button>`:""}${b.status!=="ready"?`<button class="btn sm sec" data-a="ready" data-id="${b.id}">جاهز للاستلام</button>`:""}${b.status!=="done"?`<button class="btn sm sec" data-a="done" data-id="${b.id}">اتسلّم ✓</button>`:""}${b.status!=="new"?`<button class="btn sm sec" data-a="new" data-id="${b.id}">رجوع لجديد</button>`:""}<button class="btn sm red" data-a="del" data-id="${b.id}">حذف</button></div></div>`}).join(""):`<p class="note">مفيش حجوزات.</p>`;
